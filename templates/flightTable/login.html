@@ -1,0 +1,17 @@
+{% extends 'flightTable/template.html' %}
+
+{% block subtitle %}Login{% endblock %}
+
+{% block content %}
+<p>
+  {% if error %}
+  Bad username or password.
+  {% else %}
+  You've logged in.
+  {% endif %}
+</p>
+<nav>
+  <a href="{% url 'main' %}">Go back</a>
+</nav>
+{% endblock %}
+

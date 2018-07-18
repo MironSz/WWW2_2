@@ -1,0 +1,44 @@
+{% extends "template.html" %}
+{% load staticfiles %}
+
+{% block subtitle %}{{ art.title }}{% endblock %}
+
+{% block content %}
+    <nav>
+        <a href="/">Back to main page</a>
+    </nav>
+{#    <article>#}
+{#        <h1>{{ art.title }}</h1>#}
+{#        {% if art.image %}#}
+{#        <figure>#}
+{#            <img src="{% static art.image %}" alt="{{ art.title | escape }}">#}
+{#        </figure>#}
+{#        {% endif %}#}
+{#        <p>#}
+{#            {{ art.content }}#}
+{#        </p>#}
+{#    </article>#}
+    <section>
+        <h3>Passengers</h3>
+        {% for passenger in passengers %}
+            <p>
+                <span class="passenger"></span>:
+                {{ passenger.name }}
+                {{ passenger.surname }}
+            </p>
+        {% empty %}
+            <p>
+                GHOOOOOST PLAAAAANE!!!
+            </p>
+        {% endfor %}
+        {% if addPassengerForm %}
+            <form method="POST">
+                <ul>
+                    {% csrf_token %}
+                    {{ addPassengerForm.as_ul }}
+                    <li><input type="submit"></li>
+                </ul>
+            </form>
+        {% endif %}
+    </section>
+{% endblock %}

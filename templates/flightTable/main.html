@@ -1,0 +1,14 @@
+{% extends 'flightTable/template.html' %}
+
+{% block subtitile %}Main Page{% endblock %}
+
+{% block content %}
+<article>
+  List of flights:
+  <ul>
+    {% for flight in flights %}
+    <li><a href="/flight/{{ flight.id }}/">{{ flight.id }}</a></li>
+    {% endfor %}
+  </ul>
+</article>
+{% endblock %}
