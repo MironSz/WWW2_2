@@ -1,0 +1,20 @@
+{% extends "flightTable/template.html" %}
+
+{% block content %}
+    <h2>Flights</h2>
+    <table>
+        {% for flight in flight_list %}
+            <tr>
+                <th><a href="/flight/{{ flight.id }}/">{{ flight }} </a></th>
+                <th>{{ flight.departure_time.day }}.{{ flight.departure_time.month }}.{{ flight.departure_time.year }}
+                {{ flight.departure_time.hour}}:{{ flight.departure_time.minute }}</th>
+
+                <th>{{ flight.departure_airport }} </th>
+                <th>{{ flight.arrival_time.day }}.{{ flight.arrival_time.month }}.{{ flight.arrival_time.year }}
+                {{ flight.arrival_time.hour}}:{{ flight.arrival_time.minute }}</th>
+                <th>{{ flight.arrival_airport }} </th>
+                <th>{{ flight.plane.seats}} </th>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

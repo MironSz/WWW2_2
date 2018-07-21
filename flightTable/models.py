@@ -40,6 +40,8 @@ class Flight(models.Model):
     arrival_time = models.DateTimeField("Arrival time")
     plane = models.ForeignKey(Plane, on_delete=models.CASCADE)
     passenger = models.ManyToManyField(Passenger)
+    def __str__(self):
+        return self.plane.airline.__str__()+ "/"+self.plane.__str__()+" flight nr "+self.id.__str__()
 
 
 

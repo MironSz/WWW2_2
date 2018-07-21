@@ -20,12 +20,12 @@ import flightTable.views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', flightTable.views.main, name='main'),
-    path('main/', flightTable.views.main, name='main'),
+    # path('', flightTable.views.main, name='main'),
+    path('', flightTable.views.FlightList.as_view(), name = "main"),
+    path('main/', flightTable.views.FlightList.as_view()),
     path('logout/', LogoutView.as_view(template_name='flightTable/logout.html'), name='logout'),
     path('login/', flightTable.views.login, name='login'),
     path('register/', flightTable.views.register, name='register'),
-    path('admin/', admin.site.urls),
     re_path('flight/([0-9]+)/', flightTable.views.flight, name='flight'),
-
+    # re_path('flight/([0-9]+)/', flightTable.views.FlightList.as_view()),
 ]
