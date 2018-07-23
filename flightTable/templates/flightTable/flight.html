@@ -1,5 +1,5 @@
-{% extends "template.html" %}
-{% load staticfiles %}
+{% extends "flightTable/template.html" %}
+{#{% load staticfiles %}#}
 
 {% block subtitle %}{{ art.title }}{% endblock %}
 
@@ -7,32 +7,29 @@
     <nav>
         <a href="/">Back to main page</a>
     </nav>
-{#    <article>#}
-{#        <h1>{{ art.title }}</h1>#}
-{#        {% if art.image %}#}
-{#        <figure>#}
-{#            <img src="{% static art.image %}" alt="{{ art.title | escape }}">#}
-{#        </figure>#}
-{#        {% endif %}#}
-{#        <p>#}
-{#            {{ art.content }}#}
-{#        </p>#}
-{#    </article>#}
     <section>
         <h3>Passengers</h3>
-        {% for passenger in passengers %}
-            <p>
-                <span class="passenger"></span>:
-                {{ passenger.name }}
-                {{ passenger.surname }}
-            </p>
-        {% empty %}
-            <p>
-                GHOOOOOST PLAAAAANE!!!
-            </p>
-        {% endfor %}
+        <table class = "table">
+            <thead>
+                <th>Name</th>
+                <th>Surname</th>
+                <th>Seats bought</th>
+            </thead>
+            <tbody>
+                {% for passenger in passengers %}
+                    <tr>
+                        <th>{{ passenger.name }}</th>
+                        <th>{{ passenger.surname }}</th>
+                        <th>{{  passenger.seats}}</th>
+                    </tr>
+                {% empty %}
+                    <p>Plane is still empty.</p>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h4>{{ seatsRemaining }} seats remaining.</h4>
         {% if addPassengerForm %}
-            <form method="POST">
+            <form method="POST" class = "form">
                 <ul>
                     {% csrf_token %}
                     {{ addPassengerForm.as_ul }}

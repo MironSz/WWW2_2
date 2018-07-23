@@ -27,11 +27,6 @@ class Airport(models.Model):
     def __str__(self):
         return self.name
 
-class Passenger(models.Model):
-    name = models.CharField(max_length=200)
-    surname = models.CharField(max_length=200)
-    def __str__(self):
-        return self.name+" "+self.surname
 
 class Flight(models.Model):
     departure_airport = models.ForeignKey(Airport, related_name='departure',on_delete=models.CASCADE);
@@ -39,11 +34,18 @@ class Flight(models.Model):
     departure_time = models.DateTimeField("Departure time")
     arrival_time = models.DateTimeField("Arrival time")
     plane = models.ForeignKey(Plane, on_delete=models.CASCADE)
-    passenger = models.ManyToManyField(Passenger)
+    # passenger = models.ManyToManyField(Passenger)
     def __str__(self):
         return self.plane.airline.__str__()+ "/"+self.plane.__str__()+" flight nr "+self.id.__str__()
 
 
 
 
+class Passenger(models.Model):
+    name = models.CharField(max_length=200)
+    surname = models.CharField(max_length=200)
+    seats = models.IntegerField(default=20)
+    flight = models.ForeignKey(Flight, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.name+" "+self.surname
 

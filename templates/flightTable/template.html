@@ -1,37 +1,46 @@
 <!DOCTYPE html>
+{% load bootstrap3 %}
 
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
 <html lang="en">
-  <head>
+<head>
     {% load staticfiles %}
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Flight Table- {% block subtitile %}{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-  </head>
-  <body>
-    <header>
-      <h1>Awesome Flights</h1>
-      <p>
+    {#    <link rel="stylesheet" href="{% static 'style.css' %}">#}
+</head>
+<body>
+<header>
+    <div class = "jumbotron text-center">
+        <h2>Awesome Flights</h2>
+    </div>
+    <p>
         Witaj,
         {% if request.user.username %}
-        {{ request.user.username }}.
+            {{ request.user.username }}.
         {% else %}
-        anonymous.
+            anonymous.
         {% endif %}
-      </p>
-      {% if request.user.is_authenticated %}
-      <p>
-        <a href="{% url 'logout' %}">Logout</a>
-      </p>
-      {% else %}
-      <form action="{% url 'login' %}" method="POST">
-        {% csrf_token %}
-        <input type="text" name="username" placeholder="Username">
-        <input type="password" name="password" placeholder="Password">
-        <input type="submit" value="Login">
-        or <a href="{% url 'register' %}">Register</a>
-      </form>
-      {% endif %}
-    </header>
-    {% block content %}{% endblock %}
-  </body>
+    </p>
+    {% if request.user.is_authenticated %}
+        <p>
+            <a href="{% url 'logout' %}">Logout</a>
+        </p>
+    {% else %}
+        <form action="{% url 'login' %}" method="POST">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Username">
+            <input type="password" name="password" placeholder="Password">
+            <input type="submit" value="Login">
+            or <a href="{% url 'register' %}">Register</a>
+        </form>
+    {% endif %}
+</header>
+{% block content %}{% endblock %}
+</body>
 </html>
