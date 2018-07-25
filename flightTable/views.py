@@ -84,7 +84,6 @@ def simple_list(request):
     table.paginate(page=request.GET.get('page', 1), per_page=25)
     return render(request, 'flightTable/flight_list.html', {'table': table})
 
-
 def populate():
     airport1 = Airport(name="MIMUW")
     airport1.save()
@@ -100,15 +99,15 @@ def populate():
     for i in range(20):
         airline = Airline(name="airline nr"+i.__str__())
         airline.save()
-        plane = Plane(airline=airline, registration_num="rn"+i.__str__(),seats=20+i%11)
+        plane = Plane(airline=airline, registration_num="rn"+i.__str__(), seats=20+i%11)
         delta = datetime.timedelta(days=1, hours=i)
         today = datetime.datetime.now()
         date = datetime.datetime.now() + delta
         plane.save()
         for j in range(20):
             start = today+j*delta
-            finnish = today+datetime.timedelta(hours=i%12+1,minutes=32*(j%10))
-            flight = Flight(departure_airport=airports[j%3],arrival_airport=airports[(j+1)%3],
-                            departure_time=start,arrival_time=finnish,
+            finnish = start+datetime.timedelta(hours=i%4+6, minutes=32*(j%10))
+            flight = Flight(departure_airport=airports[j%3], arrival_airport=airports[(j+1)%3],
+                            departure_time=start, arrival_time=finnish,
                             plane=plane)
             flight.save()
