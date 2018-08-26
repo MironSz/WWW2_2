@@ -1,13 +1,62 @@
 import datetime
 
+from django.db.models.functions import Concat
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import generics
+
 from flightTable.forms import RegistrationForm,AddPassengerToFlightForm
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth import authenticate, login as login_to_session
 from django.contrib.auth.models import User
-from .models import Flight, Passenger, Airport, Airline, Plane
-
+from .models import Flight, Passenger, Airport, Airline, Plane, Crew
+from .serializers import CrewSerializers
 import django_tables2 as tables
+from django.db.models import Value
+from django.core.exceptions import PermissionDenied
+
+
+
+
+@require_GET
+@csrf_exempt
+def FlightsAndCrews(request):
+    return JsonResponse({
+        'crews': list(Crew.objects.all()
+                      .annotate(name=Concat('captain_name', Value(" "), 'captain_surname')).values('name')),
+        'flights': list(Flight.objects.values('id', 'departure_airport', 'arrival_airport', 'departure_time', 'arrival_time'))
+    })
+
+
+@require_GET
+@csrf_exempt
+def get_crews(request):
+    if 'day' not in request.GET or 'month' not in request.GET or 'year' not in request.GET:
+        raise PermissionDenied
+
+    date = datetime.date(year=int(request.GET['year']), month=int(request.GET['month']), day=int(request.GET['day']))
+
+    response = []
+    filteredFlights = [flight for flight in list(Flight.objects.all())
+                       if flight.departure_time.date() <= date <= flight.arrival_time.date()]
+    for flight in filteredFlights:
+        response.append({'flightId': flight.id, 'crew': flight.crew.captain_name + " " + flight.crew.captain_surname})
+    return JsonResponse({'crews': response})
+
+
+def change_crew(request):
+    pass
+
+class CrewList(generics.ListAPIView):
+    queryset = Crew.objects.all()
+    serializer_class = CrewSerializers
+
+
+class UserDetail(generics.RetrieveAPIView):
+    queryset = Crew.objects.all()
+    serializer_class = CrewSerializers
+
 
 @require_POST
 def login(request):

@@ -17,6 +17,9 @@ from django.contrib import admin
 from django.urls import path, re_path
 from django.contrib.auth.views import LogoutView
 import flightTable.views
+from django.conf.urls import url
+from rest_framework.urlpatterns import format_suffix_patterns
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,4 +29,9 @@ urlpatterns = [
     path('login/', flightTable.views.login, name='login'),
     path('register/', flightTable.views.register, name='register'),
     re_path('flight/([0-9]+)/', flightTable.views.flight, name='flight'),
+    path('api/crews', flightTable.views.FlightsAndCrews),
+    # url(r'^crews/$', flightTable.views.CrewList.as_view()),
+    path('api/flights_and_crews/', flightTable.views.get_crews, name='flights_and_crews'),
+
 ]
+urlpatterns = format_suffix_patterns(urlpatterns)

@@ -36,12 +36,18 @@ class Airport(models.Model):
         return self.name
 
 
+class Crew(models.Model):
+    captain_name = models.CharField(max_length=200)
+    captain_surname = models.CharField(max_length=200)
+
+
 class Flight(models.Model):
     departure_airport = models.ForeignKey(Airport, related_name='departure',on_delete=models.CASCADE);
     arrival_airport = models.ForeignKey(Airport, related_name='arrival',on_delete=models.CASCADE);
     departure_time = models.DateTimeField("Departure time")
     arrival_time = models.DateTimeField("Arrival time")
     plane = models.ForeignKey(Plane, on_delete=models.CASCADE)
+    crew = models.ForeignKey(Crew, on_delete=models.CASCADE, null=True, blank=True, default=None)
 
     def __str__(self):
         return self.plane.airline.__str__()+ "/"+self.plane.__str__()+" flight nr "+self.id.__str__()
@@ -75,6 +81,5 @@ class Passenger(models.Model):
             raise ValidationError(_("Number of seats must ba a positive integer."))
         if Passenger.objects.filter(name=self.name,surname=self.surname,flight=self.flight).count() > 0:
             raise ValidationError(_("Such passenger already exists."))
-
 
 
