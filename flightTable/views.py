@@ -1,7 +1,7 @@
 import datetime
 
 from django.db.models.functions import Concat
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
@@ -15,6 +15,8 @@ from .serializers import CrewSerializers
 import django_tables2 as tables
 from django.db.models import Value
 from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ValidationError
+
 
 
 
@@ -29,24 +31,71 @@ def FlightsAndCrews(request):
     })
 
 
+def check_tags(tags, request):
+    for tag in tags:
+        if tag not in request.GET:
+            print(tag)
+            raise PermissionDenied
+
+
 @require_GET
 @csrf_exempt
 def get_crews(request):
-    if 'day' not in request.GET or 'month' not in request.GET or 'year' not in request.GET:
-        raise PermissionDenied
+    check_tags(tags=['day', 'month', 'year'], request=request)
 
     date = datetime.date(year=int(request.GET['year']), month=int(request.GET['month']), day=int(request.GET['day']))
 
     response = []
-    filteredFlights = [flight for flight in list(Flight.objects.all())
-                       if flight.departure_time.date() <= date <= flight.arrival_time.date()]
-    for flight in filteredFlights:
-        response.append({'flightId': flight.id, 'crew': flight.crew.captain_name + " " + flight.crew.captain_surname})
+    for flight in list(Flight.objects.all()):
+        if flight.departure_time.date() <= date <= flight.arrival_time.date():
+            response.append({'flightId': flight.id, 'crew': flight.crew.captain_name + " " + flight.crew.captain_surname})
+    print(response)
     return JsonResponse({'crews': response})
 
+@require_GET
+@csrf_exempt
+def login_REST(request):
+    check_tags(tags=['password', 'username'], request=request)
+    username = request.GET.get('username')
+    password = request.GET.get('password')
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        return JsonResponse({"success": True})
 
+    else:
+        return JsonResponse({"success": False})
+
+
+
+# @require_POST
+@csrf_exempt
 def change_crew(request):
-    pass
+    check_tags(tags=['flight_id', 'captain_name','captain_surname', 'username', 'password'], request=request)
+    # check_tags(tags=['flight_id', 'crew_id', 'username', 'password'], request=request)
+    username = request.GET.get('username')
+    password = request.GET.get('password')
+    flight_id = request.GET.get('flight_id')
+    # crew_id = request.POST.get('crew_id')
+    captain_name = request.GET.get('captain_name')
+    captain_surname = request.GET.get('captain_surname')
+    print(captain_name)
+    print(captain_surname)
+    print(flight_id)
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        # crew = Crew.objects.get(id=crew_id)
+        crew = Crew.objects.get(captain_surname=captain_surname,captain_name=captain_name)
+        flight = Flight.objects.get(id=flight_id)
+        if crew is None or flight is None:
+            raise PermissionDenied
+        flight.crew = crew
+        try:
+            flight.full_clean()
+            flight.save()
+        except ValidationError:
+            raise PermissionDenied
+        return HttpResponse()
+
 
 class CrewList(generics.ListAPIView):
     queryset = Crew.objects.all()
@@ -80,7 +129,7 @@ def register(request):
     return render(request, 'flightTable/register.html', locals())
 
 
-#@csrf_exempt
+@csrf_exempt
 def flight(request, flightId):
     fl = get_object_or_404(Flight, id=flightId)
     passengers = Passenger.objects.filter(flight=fl)

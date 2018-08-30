@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="mironsStandarLib.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+
+</head>
+
+<body onLoad="prepareCrewTable('#excelDataTable')">
+
+<div id="login">
+    <form name="login_form" method="GET" onsubmit="return submitLoginForm(this);">
+        <input name="username"/>
+        <input type="password" name="password"/>
+        <input type="submit" value="login"/>
+    </form>
+</div>
+
+<div id="login_successful"></div>
+<div id="logout" style="display:none">
+    <button type="button" onclick="submitLogoutForm()">Logout</button>
+    </form>
+</div>
+<script>
+    hide_show_login_logot_button();
+</script>
+
+<div id="date_form">
+    <form name="date_form" method="GET" onsubmit="return change_flights_date(this);">
+        <input type="date" value="today"/>
+        <input type="submit" value="Change date"/>
+    </form>
+</div>
+
+<table id="excelDataTable">
+</table>
+<div id="debug"></div>
+
+
+</body>
+</html>
+

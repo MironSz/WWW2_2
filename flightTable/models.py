@@ -40,6 +40,10 @@ class Crew(models.Model):
     captain_name = models.CharField(max_length=200)
     captain_surname = models.CharField(max_length=200)
 
+    def __str__(self):
+        return self.captain_name + ' ' + self.captain_surname
+    class Meta:
+        unique_together = ('captain_name', 'captain_surname',)
 
 class Flight(models.Model):
     departure_airport = models.ForeignKey(Airport, related_name='departure',on_delete=models.CASCADE);
@@ -56,14 +60,20 @@ class Flight(models.Model):
         super().clean()
         if Flight.objects.filter(plane=self.plane).count() >= 4:
             raise ValidationError(_("This plane has already 4 flights this day."))
+
         if self.arrival_time <= self.departure_time:
-            raise ValidationError(_("Arrival time must be after  departure time."))
+            raise ValidationError(_("Arrival time must be after departure time."))
+
         for fl in Flight.objects.filter(plane=self.plane):
             if self.departure_time < fl.departure_time < self.arrival_time or \
                     self.departure_time < fl.arrival_time < self.arrival_time:
                 raise ValidationError(_("This plane already has a flight in this time."))
-                break
 
+        if self.crew is not None:
+            for fl in Flight.objects.filter(crew=self.crew):
+                if self.departure_time < fl.departure_time < self.arrival_time or \
+                        self.departure_time < fl.arrival_time < self.arrival_time:
+                    raise ValidationError(_("This crew has already flight at the same time."))
 
 
 class Passenger(models.Model):
@@ -79,7 +89,7 @@ class Passenger(models.Model):
         super().clean()
         if self.seats < 1:
             raise ValidationError(_("Number of seats must ba a positive integer."))
-        if Passenger.objects.filter(name=self.name,surname=self.surname,flight=self.flight).count() > 0:
-            raise ValidationError(_("Such passenger already exists."))
+        # if Passenger.objects.filter (name=self.name,surname=self.surname,flight=self.flight).count() > 0:
+        #     raise ValidationError(_("Such passenger already exists."))
 
 
