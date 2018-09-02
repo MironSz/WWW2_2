@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics
 
-from flightTable.forms import RegistrationForm,AddPassengerToFlightForm
+from flightTable.forms import RegistrationForm, AddPassengerToFlightForm
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth import authenticate, login as login_to_session
 from django.contrib.auth.models import User
@@ -16,26 +16,13 @@ import django_tables2 as tables
 from django.db.models import Value
 from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
-
-
-
-
-
-@require_GET
-@csrf_exempt
-def FlightsAndCrews(request):
-    return JsonResponse({
-        'crews': list(Crew.objects.all()
-                      .annotate(name=Concat('captain_name', Value(" "), 'captain_surname')).values('name')),
-        'flights': list(Flight.objects.values('id', 'departure_airport', 'arrival_airport', 'departure_time', 'arrival_time'))
-    })
-
+import json
 
 def check_tags(tags, request):
     for tag in tags:
         if tag not in request.GET:
             print(tag)
-            raise PermissionDenied
+            raise PermissionDenied("missing " + tag)
 
 
 @require_GET
@@ -43,14 +30,19 @@ def check_tags(tags, request):
 def get_crews(request):
     check_tags(tags=['day', 'month', 'year'], request=request)
 
-    date = datetime.date(year=int(request.GET['year']), month=int(request.GET['month']), day=int(request.GET['day']))
+    date = datetime.date(year=int(request.GET['year']), month=int(request.GET['month']),
+                         day=int(request.GET['day']))
 
     response = []
     for flight in list(Flight.objects.all()):
         if flight.departure_time.date() <= date <= flight.arrival_time.date():
-            response.append({'flightId': flight.id, 'crew': flight.crew.captain_name + " " + flight.crew.captain_surname})
-    print(response)
+            response.append(
+                {'flightId': flight.id,
+                 'crew': flight.crew.captain_name + " " + flight.crew.captain_surname,
+                 "departure airport": flight.departure_airport.__str__(),
+                 "arrival airport": flight.arrival_airport.__str__()})
     return JsonResponse({'crews': response})
+
 
 @require_GET
 @csrf_exempt
@@ -66,45 +58,46 @@ def login_REST(request):
         return JsonResponse({"success": False})
 
 
-
 # @require_POST
 @csrf_exempt
 def change_crew(request):
-    check_tags(tags=['flight_id', 'captain_name','captain_surname', 'username', 'password'], request=request)
-    # check_tags(tags=['flight_id', 'crew_id', 'username', 'password'], request=request)
-    username = request.GET.get('username')
-    password = request.GET.get('password')
-    flight_id = request.GET.get('flight_id')
-    # crew_id = request.POST.get('crew_id')
-    captain_name = request.GET.get('captain_name')
-    captain_surname = request.GET.get('captain_surname')
-    print(captain_name)
-    print(captain_surname)
-    print(flight_id)
-    user = authenticate(username=username, password=password)
-    if user is not None:
-        # crew = Crew.objects.get(id=crew_id)
-        crew = Crew.objects.get(captain_surname=captain_surname,captain_name=captain_name)
-        flight = Flight.objects.get(id=flight_id)
-        if crew is None or flight is None:
-            raise PermissionDenied
-        flight.crew = crew
-        try:
+    received_json_data = json.loads(request.body.decode("utf-8"))
+    try:
+        tags = ['captain_name', 'captain_surname', 'username', 'password', 'flight_id', ]
+        for tag in tags:
+            if tag not in received_json_data:
+                raise ValidationError("Missing " + tag + " argument")
+        username = received_json_data['username']
+        password = received_json_data['password']
+        captain_name = received_json_data['captain_name']
+        captain_surname = received_json_data['captain_surname']
+        flight_id = received_json_data['flight_id']
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            try:
+                crew = Crew.objects.get(captain_surname=captain_surname, captain_name=captain_name)
+            except Exception as e:
+                raise ValidationError("Such crew does not exist")
+            try:
+                flight = Flight.objects.get(id=flight_id)
+            except Exception as e:
+                raise ValidationError("Such flight does not exist")
+
+            flight.crew = crew
+
             flight.full_clean()
             flight.save()
-        except ValidationError:
-            raise PermissionDenied
-        return HttpResponse()
 
+        else:
+            raise ValidationError("Only logged users may change crews assignment")
 
-class CrewList(generics.ListAPIView):
-    queryset = Crew.objects.all()
-    serializer_class = CrewSerializers
+    except ValidationError as e:
+        try:
+            return JsonResponse({"success": False, "error": e.message})
+        except Exception:
+            return JsonResponse({"success": False, "error": "This crew has already flight at this time."})
 
-
-class UserDetail(generics.RetrieveAPIView):
-    queryset = Crew.objects.all()
-    serializer_class = CrewSerializers
+    return JsonResponse({"success": True})
 
 
 @require_POST
@@ -121,7 +114,8 @@ def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(username=request.POST['username'], password=request.POST['password'])
+            user = User.objects.create_user(username=request.POST['username'],
+                                            password=request.POST['password'])
             login_to_session(request, user)
             return redirect('main')
     else:
@@ -139,7 +133,8 @@ def flight(request, flightId):
 
     if request.user.is_authenticated:
         if request.method == 'POST':
-            addPassengerForm = AddPassengerToFlightForm(request.POST,initial={"seats": 1}, seatsRemaining=seatsRemaining)
+            addPassengerForm = AddPassengerToFlightForm(request.POST, initial={"seats": 1},
+                                                        seatsRemaining=seatsRemaining)
             addPassengerForm.full_clean()
             if addPassengerForm.is_valid():
                 passenger = addPassengerForm.save(commit=False)
@@ -149,7 +144,8 @@ def flight(request, flightId):
                 seats = request.POST.get("seats")
 
                 if Passenger.objects.filter(name=name, surname=surname, flight=flight).exists():
-                    passenger = Passenger.objects.filter(name = passenger.name,surname=passenger.surname).first()
+                    passenger = Passenger.objects.filter(name=passenger.name,
+                                                         surname=passenger.surname).first()
                     passenger.seats += int(seats)
                     passenger.save()
                 else:
@@ -158,7 +154,8 @@ def flight(request, flightId):
 
                 return redirect('flight', flightId)
         else:
-            addPassengerForm = AddPassengerToFlightForm(initial={"seats": 1}, seatsRemaining=seatsRemaining)
+            addPassengerForm = AddPassengerToFlightForm(initial={"seats": 1},
+                                                        seatsRemaining=seatsRemaining)
 
     return render(request, 'flightTable/flight.html', locals())
 
@@ -169,6 +166,7 @@ class SimpleTable(tables.Table):
     class Meta:
         model = Flight
         attrs = {'class': 'table'}
+
 
 def simple_list(request):
     # populate()
@@ -182,6 +180,7 @@ def simple_list(request):
     table.paginate(page=request.GET.get('page', 1), per_page=25)
     return render(request, 'flightTable/flight_list.html', {'table': table})
 
+
 def populate():
     airport1 = Airport(name="MIMUW")
     airport1.save()
@@ -192,20 +191,21 @@ def populate():
     airport3 = Airport(name="MINIPW")
     airport3.save()
 
-    airports=[airport1, airport2, airport3]
+    airports = [airport1, airport2, airport3]
 
     for i in range(20):
-        airline = Airline(name="airline nr"+i.__str__())
+        airline = Airline(name="airline nr" + i.__str__())
         airline.save()
-        plane = Plane(airline=airline, registration_num="rn"+i.__str__(), seats=20+i%11)
+        plane = Plane(airline=airline, registration_num="rn" + i.__str__(), seats=20 + i % 11)
         delta = datetime.timedelta(days=1, hours=i)
         today = datetime.datetime.now()
         date = datetime.datetime.now() + delta
         plane.save()
         for j in range(20):
-            start = today+j*delta
-            finnish = start+datetime.timedelta(hours=i%4+6, minutes=32*(j%10))
-            flight = Flight(departure_airport=airports[j%3], arrival_airport=airports[(j+1)%3],
+            start = today + j * delta
+            finnish = start + datetime.timedelta(hours=i % 4 + 6, minutes=32 * (j % 10))
+            flight = Flight(departure_airport=airports[j % 3],
+                            arrival_airport=airports[(j + 1) % 3],
                             departure_time=start, arrival_time=finnish,
                             plane=plane)
             flight.save()

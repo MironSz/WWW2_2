@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <script src="mironsStandarLib.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Crews</title>
 
 
 </head>
@@ -11,32 +15,44 @@
 
 <div id="login">
     <form name="login_form" method="GET" onsubmit="return submitLoginForm(this);">
-        <input name="username"/>
-        <input type="password" name="password"/>
+        <input name="username" placeholder="username"/>
+        <input type="password" placeholder="password" name="password"/>
         <input type="submit" value="login"/>
     </form>
 </div>
 
 <div id="login_successful"></div>
+
 <div id="logout" style="display:none">
     <button type="button" onclick="submitLogoutForm()">Logout</button>
-    </form>
 </div>
+
 <script>
-    hide_show_login_logot_button();
+    hide_show_login_logout_button();
 </script>
 
-<div id="date_form">
-    <form name="date_form" method="GET" onsubmit="return change_flights_date(this);">
-        <input type="date" value="today"/>
-        <input type="submit" value="Change date"/>
+<div id="change_crew_div">
+    <form name="change_crew_form" method="GET" onsubmit="change_crew(); return false;">
+        <input name="Firstname" type="text" placeholder="Name"/>
+        <input name="Surname" type="text" placeholder="Surname"/>
+        <input name="FlightId" type="number" placeholder="FlightId">
+        <input type="submit" value="Assign" onsubmit="change_crew(); return false;"/>
+    </form>
+    <p id="change_error_success" style="display:none"></p>
+</div>
+
+<div id="date_form_div">
+    <form name="date_form" method="GET" onsubmit="return change_flights_date();">
+        <input name="date_field" type="date"/>
+        <input type="submit" value="Change"/>
     </form>
 </div>
 
-<table id="excelDataTable">
-</table>
-<div id="debug"></div>
+<div id="crew_div">
+    <table id="excelDataTable"  class="table table-striped border"></table>
+</div>
 
+<div id="debug"></div>
 
 </body>
 </html>

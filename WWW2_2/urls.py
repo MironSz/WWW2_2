@@ -29,9 +29,8 @@ urlpatterns = [
     path('login/', flightTable.views.login, name='login'),
     path('register/', flightTable.views.register, name='register'),
     re_path('flight/([0-9]+)/', flightTable.views.flight, name='flight'),
-    path('api/crews', flightTable.views.FlightsAndCrews),
     path('api/flights_and_crews/', flightTable.views.get_crews, name='flights_and_crews'),
-    path('api/update_crew/', flightTable.views.change_crew, name='update_crew'),
+    path('api/change_crew/', flightTable.views.change_crew, name='update_crew'),
     path('api/login_REST/', flightTable.views.login_REST, name='login_REST'),
 
 ]
