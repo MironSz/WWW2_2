@@ -1,4 +1,4 @@
-function submitLoginForm(oFormElement) {
+function submit_login_form(oFormElement) {
     var xhttp = new XMLHttpRequest();
     var password = document.forms["login_form"]["password"].value;
     var username = document.forms["login_form"]["username"].value;
@@ -23,7 +23,7 @@ function submitLoginForm(oFormElement) {
     return false;
 }
 
-function submitLogoutForm() {
+function click_logout() {
     document.getElementById("logout").style.display = "none";
     document.getElementById("login").style.display = "block";
     document.getElementById("login_successful").innerHTML = "";
@@ -34,7 +34,7 @@ function submitLogoutForm() {
 }
 
 
-function prepareCrewTable(selector) {
+function prepare_crew_table(selector) {
     var xhttp = new XMLHttpRequest();
     var today = new Date();
     var day;
@@ -53,15 +53,16 @@ function prepareCrewTable(selector) {
 
     document.getElementById("excelDataTable").innerHTML = "";
 
-    function prepareTableFromList(myList) {
+    function prepare_table_from_list(myList) {
         var columns = addAllColumnHeaders(myList, selector);
 
         for (var i = 0; i < myList.length; i++) {
             var row$ = $('<tr/>');
             for (var colIndex = 0; colIndex < columns.length; colIndex++) {
                 var cellValue = myList[i][columns[colIndex]];
-                if (cellValue != null)
-                    row$.append($('<td/>').html(cellValue));
+                if (cellValue == null)
+                    cellValue = "No crew assigned";
+                row$.append($('<td/>').html(cellValue));
 
             }
 
@@ -87,18 +88,15 @@ function prepareCrewTable(selector) {
                 document.getElementById("crew_div").style.display = "block";
             } else {
                 document.getElementById("crew_div").style.display = "none";
-
             }
-
             $(selector).append(headerTr$);
-
             return columnSet;
         }
     }
 
     xhttp.onreadystatechange = function () {
         var myList = JSON.parse(this.responseText).crews;
-        prepareTableFromList(myList)
+        prepare_table_from_list(myList)
     };
     xhttp.open("GET", "/api/flights_and_crews/?day=" + day + "&month=" + month + "&year=" + year, false);
     xhttp.send();
@@ -120,7 +118,7 @@ function change_flights_date() {
     window.localStorage.setItem("day", day);
     window.localStorage.setItem("month", month);
     window.localStorage.setItem("year", year);
-    prepareCrewTable('#excelDataTable');
+    prepare_crew_table('#excelDataTable');
 
     return false;
 }
@@ -138,7 +136,7 @@ function change_crew() {
         var myObj = JSON.parse(this.responseText);
         if (myObj.success === true) {
             document.getElementById("change_error_success").style.display = "none";
-            prepareCrewTable("#excelDataTable");
+            prepare_crew_table("#excelDataTable");
         }
         else {
             document.getElementById("change_error_success").innerHTML = myObj.error;

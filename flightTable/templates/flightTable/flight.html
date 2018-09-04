@@ -6,10 +6,11 @@
 {% block content %}
     <nav>
         <a href="/">Back to main page</a>
+
     </nav>
     <section>
         <h3>Passengers</h3>
-        <table class = "table">
+        <table class = "table" id ="Passenger table">
             <thead>
                 <th>Name</th>
                 <th>Surname</th>
@@ -27,7 +28,7 @@
                 {% endfor %}
             </tbody>
         </table>
-        <h4>{{ seatsRemaining }} seats remaining.</h4>
+        <h4 id = "Seats Remaining">{{ seatsRemaining }} seats remaining.</h4>
         {% if addPassengerForm %}
             <form method="POST" class = "form">
                 <ul>

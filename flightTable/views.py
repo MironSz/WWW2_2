@@ -18,6 +18,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ValidationError
 import json
 
+
 def check_tags(tags, request):
     for tag in tags:
         if tag not in request.GET:
@@ -33,12 +34,18 @@ def get_crews(request):
     date = datetime.date(year=int(request.GET['year']), month=int(request.GET['month']),
                          day=int(request.GET['day']))
 
+    def get_crew_or_none(flight):
+        try:
+            return flight.crew.captain_name + " " + flight.crew.captain_surname
+        except AttributeError:
+            return ""
+
     response = []
     for flight in list(Flight.objects.all()):
         if flight.departure_time.date() <= date <= flight.arrival_time.date():
             response.append(
                 {'flightId': flight.id,
-                 'crew': flight.crew.captain_name + " " + flight.crew.captain_surname,
+                 'crew': get_crew_or_none(flight=flight),
                  "departure airport": flight.departure_airport.__str__(),
                  "arrival airport": flight.arrival_airport.__str__()})
     return JsonResponse({'crews': response})
@@ -46,7 +53,7 @@ def get_crews(request):
 
 @require_GET
 @csrf_exempt
-def login_REST(request):
+def login_rest(request):
     check_tags(tags=['password', 'username'], request=request)
     username = request.GET.get('username')
     password = request.GET.get('password')
@@ -58,7 +65,7 @@ def login_REST(request):
         return JsonResponse({"success": False})
 
 
-# @require_POST
+@require_POST
 @csrf_exempt
 def change_crew(request):
     received_json_data = json.loads(request.body.decode("utf-8"))
@@ -99,7 +106,7 @@ def change_crew(request):
 
     return JsonResponse({"success": True})
 
-
+@csrf_exempt
 @require_POST
 def login(request):
     user = authenticate(username=request.POST['username'], password=request.POST['password'])
@@ -109,7 +116,8 @@ def login(request):
         error = True
     return render(request, 'flightTable/login.html', locals())
 
-
+@require_POST
+@csrf_exempt
 def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
@@ -169,8 +177,6 @@ class SimpleTable(tables.Table):
 
 
 def simple_list(request):
-    # populate()
-
     if "sort" in request.GET and request.GET.get("sort", "") != "edit_entries":
         queryset = Flight.objects.all().order_by(request.GET.get("sort", ""))
     else:
@@ -181,7 +187,11 @@ def simple_list(request):
     return render(request, 'flightTable/flight_list.html', {'table': table})
 
 
-def populate():
+def populate_database(n):
+    user = User.objects.create_user(username='user',
+                                    email='jlennon@beatles.com',
+                                    password="password123")
+    user.save()
     airport1 = Airport(name="MIMUW")
     airport1.save()
 
@@ -193,7 +203,13 @@ def populate():
 
     airports = [airport1, airport2, airport3]
 
-    for i in range(20):
+    crews = []
+    for i in range(n):
+        crew = Crew(captain_name="A" + i.__str__(), captain_surname="B" + i.__str__())
+        crew.save()
+        crews.append(crew)
+
+    for i in range(n):
         airline = Airline(name="airline nr" + i.__str__())
         airline.save()
         plane = Plane(airline=airline, registration_num="rn" + i.__str__(), seats=20 + i % 11)
@@ -201,7 +217,7 @@ def populate():
         today = datetime.datetime.now()
         date = datetime.datetime.now() + delta
         plane.save()
-        for j in range(20):
+        for j in range(n):
             start = today + j * delta
             finnish = start + datetime.timedelta(hours=i % 4 + 6, minutes=32 * (j % 10))
             flight = Flight(departure_airport=airports[j % 3],

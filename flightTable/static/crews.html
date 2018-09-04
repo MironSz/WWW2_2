@@ -11,10 +11,10 @@
 
 </head>
 
-<body onLoad="prepareCrewTable('#excelDataTable')">
+<body onLoad="prepare_crew_table('#excelDataTable')">
 
 <div id="login">
-    <form name="login_form" method="GET" onsubmit="return submitLoginForm(this);">
+    <form name="login_form" method="GET" onsubmit="return submit_login_form(this);">
         <input name="username" placeholder="username"/>
         <input type="password" placeholder="password" name="password"/>
         <input type="submit" value="login"/>
@@ -24,7 +24,7 @@
 <div id="login_successful"></div>
 
 <div id="logout" style="display:none">
-    <button type="button" onclick="submitLogoutForm()">Logout</button>
+    <button type="button" onclick="click_logout()">Logout</button>
 </div>
 
 <script>

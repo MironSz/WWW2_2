@@ -95,5 +95,3 @@ class Passenger(models.Model):
         super().clean()
         if self.seats < 1:
             raise ValidationError("Number of seats must ba a positive integer.")
-        if Passenger.objects.filter(name=self.name, surname=self.surname, flight=self.flight).count() > 0:
-            raise ValidationError(_("Such passenger already exists."))

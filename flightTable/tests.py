@@ -1,12 +1,138 @@
 # -*- coding: utf-8 -*-
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, TransactionTestCase
 
+from flightTable import views
 from flightTable.models import Crew, Flight, Airport, Plane, Airline
 import datetime
 from django.core import serializers
 import json
+
+# -*- coding: utf-8 -*-
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoAlertPresentException
+import unittest, time, re
+
+
+class SeleniumTestMine(TestCase):
+    fixtures = ['initial_data.json']
+    def setUp(self):
+
+
+        # views.populate_database(5)
+        # self.serialized_rollback = True
+
+        self.driver = webdriver.Chrome(
+            executable_path="/home/miron/PycharmProjects/WWW2_2/flightTable/webDrivers/chromedriver")
+        self.driver.implicitly_wait(3000)
+        self.base_url = "https://www.katalon.com/"
+        self.verificationErrors = []
+        self.accept_next_alert = True
+
+    def test_buy_ticket(self):
+        driver = self.driver
+        driver.get("http://localhost:8000/logout/")
+        driver.find_element_by_name("username").send_keys("user")
+        driver.find_element_by_name("password").send_keys("password123")
+        driver.find_element_by_name("password").send_keys(Keys.ENTER)
+        driver.find_element_by_link_text("Go back").click()
+        driver.find_element_by_link_text("Add passengers").click()
+        driver.find_element_by_id("id_name").send_keys("Name")
+        driver.find_element_by_id("id_surname").send_keys("Surname")
+        driver.find_element_by_id("id_surname").send_keys(Keys.ENTER)
+
+        try:
+            self.assertEqual("1", driver.find_element_by_xpath(
+                "(.//*[normalize-space(text()) and normalize-space(.)='Surname'])[2]/following::th[1]").text)
+        except AssertionError as e:
+            self.verificationErrors.append(str(e))
+        try:
+            self.assertEqual("19 seats remaining.", driver.find_element_by_id("Seats Remaining").text)
+        except AssertionError as e:
+            self.verificationErrors.append(str(e))
+        driver.find_element_by_id("id_name").send_keys("Name")
+        driver.find_element_by_id("id_surname").send_keys("Surname")
+        driver.find_element_by_id("id_surname").send_keys(Keys.ENTER)
+
+        try:
+            self.assertEqual("2", driver.find_element_by_xpath(
+                "(.//*[normalize-space(text()) and normalize-space(.)='Surname'])[2]/following::th[1]").text)
+        except AssertionError as e:
+            self.verificationErrors.append(str(e))
+        try:
+            self.assertEqual("18 seats remaining.", driver.find_element_by_id("Seats Remaining").text)
+        except AssertionError as e:
+            self.verificationErrors.append(str(e))
+
+    def test_assign_crew(self):
+        driver = self.driver
+        driver.get("http://localhost:8000/")
+        driver.find_element_by_link_text("Change crews assignments").click()
+        driver.find_element_by_name("username").send_keys("user")
+        driver.find_element_by_name("password").send_keys("password123")
+        driver.find_element_by_name("password").send_keys(Keys.ENTER)
+        try:
+            self.assertEqual("You are logged in as user", driver.find_element_by_id("login_successful").text)
+        except AssertionError as e:
+            self.verificationErrors.append(str(e))
+        driver.find_element_by_name("Firstname").send_keys("A1")
+        driver.find_element_by_name("Surname").send_keys("B1")
+        driver.find_element_by_name("FlightId").send_keys("1")
+        driver.find_element_by_xpath(
+            "(.//*[normalize-space(text()) and normalize-space(.)='Logout'])[1]/following::input[4]").click()
+        driver.find_element_by_xpath(
+            "(.//*[normalize-space(text()) and normalize-space(.)='crew'])[1]/following::tr[1]").click()
+        try:
+            self.assertEqual("A1 B1", driver.find_element_by_xpath(
+                "(.//*[normalize-space(text()) and normalize-space(.)='PG'])[1]/following::td[1]").text)
+        except AssertionError as e:
+            self.verificationErrors.append(str(e))
+        driver.find_element_by_name("Firstname").send_keys("A1")
+        driver.find_element_by_name("Surname").send_keys("B1")
+        driver.find_element_by_name("FlightId").send_keys("11")
+        driver.find_element_by_xpath(
+            "(.//*[normalize-space(text()) and normalize-space(.)='Logout'])[1]/following::input[4]").click()
+        try:
+            self.assertEqual("This crew has already flight at this time.",
+                             driver.find_element_by_id("change_error_success").text)
+        except AssertionError as e:
+            self.verificationErrors.append(str(e))
+
+    def is_element_present(self, how, what):
+        try:
+            self.driver.find_element(by=how, value=what)
+        except NoSuchElementException as e:
+            return False
+        return True
+
+    def is_alert_present(self):
+        try:
+            self.driver.switch_to_alert()
+        except NoAlertPresentException as e:
+            return False
+        return True
+
+    def close_alert_and_get_its_text(self):
+        try:
+            alert = self.driver.switch_to_alert()
+            alert_text = alert.text
+            if self.accept_next_alert:
+                alert.accept()
+            else:
+                alert.dismiss()
+            return alert_text
+        finally:
+            self.accept_next_alert = True
+
+    def tearDown(self):
+        self.driver.quit()
+        self.assertEqual([], self.verificationErrors)
+        super().tearDown()
 
 
 class ApiTest(TestCase):
