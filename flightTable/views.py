@@ -107,7 +107,6 @@ def change_crew(request):
     return JsonResponse({"success": True})
 
 @csrf_exempt
-@require_POST
 def login(request):
     user = authenticate(username=request.POST['username'], password=request.POST['password'])
     if user is not None:
@@ -116,7 +115,6 @@ def login(request):
         error = True
     return render(request, 'flightTable/login.html', locals())
 
-@require_POST
 @csrf_exempt
 def register(request):
     if request.method == 'POST':

@@ -135,12 +135,20 @@ function change_crew() {
     xhttp.onreadystatechange = function () {
         var myObj = JSON.parse(this.responseText);
         if (myObj.success === true) {
-            document.getElementById("change_error_success").style.display = "none";
+            document.getElementById("change_error").style.display = "none";
+            document.getElementById("change_success").style.display = "none";
             prepare_crew_table("#excelDataTable");
+            document.getElementById("change_error").style.display = "none";
+            document.getElementById("change_success").style.display = "block";
+
+            document.getElementById("change_success").innerHTML = "Changed crew";
         }
         else {
-            document.getElementById("change_error_success").innerHTML = myObj.error;
-            document.getElementById("change_error_success").style.display = "block";
+            document.getElementById("change_error").style.display = "none";
+            document.getElementById("change_success").style.display = "none";
+            document.getElementById("change_error").innerHTML = myObj.error;
+            document.getElementById("change_error").style.display = "block";
+            document.getElementById("change_success").style.display = "none";
 
         }
     };

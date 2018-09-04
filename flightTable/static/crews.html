@@ -36,15 +36,16 @@
         <input name="Firstname" type="text" placeholder="Name"/>
         <input name="Surname" type="text" placeholder="Surname"/>
         <input name="FlightId" type="number" placeholder="FlightId">
-        <input type="submit" value="Assign" onsubmit="change_crew(); return false;"/>
+        <input id="assign_button" type="submit" value="Assign" onsubmit="change_crew(); return false;"/>
     </form>
-    <p id="change_error_success" style="display:none"></p>
+    <p id="change_error" style="display:none"></p>
+    <p id="change_success" style="display:none"></p>
 </div>
 
 <div id="date_form_div">
     <form name="date_form" method="GET" onsubmit="return change_flights_date();">
         <input name="date_field" type="date"/>
-        <input type="submit" value="Change"/>
+        <input id="date_button" type="submit" value="Change"/>
     </form>
 </div>
 
