@@ -24,7 +24,7 @@ from selenium.webdriver.support import expected_conditions
 
 
 class SeleniumTestMine(StaticLiveServerTestCase):
-    fixtures = ['initial_data.json']
+    fixtures = ['test_data.json']
 
     def setUp(self):
         self.driver = webdriver.Chrome(
